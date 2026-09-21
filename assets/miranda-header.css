@@ -1,0 +1,140 @@
+#header-group .announcement-bar {
+  min-height: 0;
+}
+
+#header-group .announcement-bar__slider {
+  min-height: 0;
+}
+
+#header-group .announcement-bar__text {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+#header-component {
+  --header-content-transition-timing: 220ms ease;
+}
+
+#header-component .header__columns {
+  align-items: center;
+}
+
+#header-component .header-logo {
+  line-height: 1;
+}
+
+#header-component .header-logo__image {
+  display: block;
+}
+
+#header-component .menu-list__list {
+  gap: clamp(1.35rem, 2.4vw, 2.75rem);
+}
+
+#header-component .menu-list__link {
+  min-height: 44px;
+  padding-block: 0.35rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+}
+
+#header-component .menu-list__link-title {
+  position: relative;
+}
+
+#header-component .menu-list__link-title::after {
+  position: absolute;
+  right: 0;
+  bottom: -0.28rem;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.35);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+#header-component .header-actions__action,
+#header-component .search-action,
+#header-component .header__icon--menu {
+  min-width: 44px;
+  min-height: 44px;
+  color: currentColor;
+  opacity: 0.84;
+  transition:
+    opacity 180ms ease,
+    color 180ms ease;
+}
+
+#header-component header-actions {
+  align-items: center;
+  gap: 0.15rem;
+}
+
+#header-component .svg-wrapper,
+#header-component svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (hover: hover) {
+  #header-component .menu-list__link:hover .menu-list__link-title::after,
+  #header-component .menu-list__link:focus-visible .menu-list__link-title::after,
+  #header-component .menu-list__link--active .menu-list__link-title::after {
+    opacity: 0.38;
+    transform: scaleX(1);
+  }
+
+  #header-component .header-actions__action:hover,
+  #header-component .search-action:hover,
+  #header-component .header__icon--menu:hover {
+    opacity: 1;
+  }
+}
+
+@media screen and (min-width: 750px) {
+  #header-component .header__columns {
+    min-height: 68px;
+  }
+
+  #header-component .header-logo__image {
+    width: auto;
+    max-height: 56px;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  #header-group .announcement-bar__text {
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+  }
+
+  #header-component .header__columns,
+  #header-component[data-menu-style='drawer'] .header__columns {
+    min-height: 56px;
+  }
+
+  #header-component .header-logo,
+  #header-component[data-menu-style='drawer'] .header-logo {
+    justify-self: center;
+    min-width: 0;
+  }
+
+  #header-component .header-logo__image,
+  #header-component[data-menu-style='drawer'] .header-logo__image {
+    width: min(var(--header-logo-image-width-mobile), 38vw);
+    max-height: var(--header-logo-image-height-mobile);
+    height: auto;
+  }
+
+  #header-component header-actions {
+    gap: 0;
+  }
+}
