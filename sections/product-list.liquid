@@ -2,6 +2,20 @@
 
 {% liquid
   assign max_items = section.settings.max_products
+  assign miranda_showcase_style = true
+  if section.settings.miranda_showcase_style == false
+    assign miranda_showcase_style = false
+  endif
+
+  assign miranda_showcase_title = section.settings.miranda_showcase_title | default: 'NOVIDADES'
+  assign miranda_showcase_description = section.settings.miranda_showcase_description | default: 'Peças escolhidas para renovar seus looks.'
+  assign miranda_showcase_link_label = section.settings.miranda_showcase_link_label | default: 'VER TUDO →'
+  assign miranda_showcase_variant = section.settings.miranda_showcase_variant | default: 'standard'
+  assign miranda_showcase_link = section.settings.miranda_showcase_link
+  if miranda_showcase_link == blank and section.settings.collection != blank
+    assign miranda_showcase_link = section.settings.collection.url
+  endif
+
   if section.settings.background_color != blank
     render 'contrast-override', background_color: section.settings.background_color, section_id: section.id
   endif
@@ -17,6 +31,7 @@
     section--{{ section.settings.section_width }}
     {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
     section-resource-list
+    {% if miranda_showcase_style %} product-list--miranda-showcase product-list--miranda-showcase-{{ miranda_showcase_variant }}{% endif %}
     spacing-style
     gap-style
   "
@@ -25,9 +40,29 @@
     {% render 'gap-style', value: section.settings.gap %}
   "
 >
-  <div class="section-resource-list__header">
-    {%- content_for 'block', type: '_product-list-content', id: 'static-header' -%}
-  </div>
+  {% if miranda_showcase_style %}
+    <header class="miranda-product-showcase__header">
+      <div class="miranda-product-showcase__heading-group">
+        {% if miranda_showcase_title != blank %}
+          <h2 class="miranda-product-showcase__title">{{ miranda_showcase_title | escape }}</h2>
+        {% endif %}
+
+        {% if miranda_showcase_description != blank %}
+          <p class="miranda-product-showcase__description">{{ miranda_showcase_description | escape }}</p>
+        {% endif %}
+      </div>
+
+      {% if miranda_showcase_variant != 'featured' and miranda_showcase_link_label != blank and miranda_showcase_link != blank %}
+        <a class="miranda-product-showcase__link" href="{{ miranda_showcase_link }}">
+          {{ miranda_showcase_link_label | escape }}
+        </a>
+      {% endif %}
+    </header>
+  {% else %}
+    <div class="section-resource-list__header">
+      {%- content_for 'block', type: '_product-list-content', id: 'static-header' -%}
+    </div>
+  {% endif %}
 
   {% capture list_items %}
     {% if section.settings.collection != blank and shop.products_count != 0 %}
@@ -78,6 +113,14 @@
     test_id: 'resource-list-grid'
   %}
 
+  {% if miranda_showcase_style and miranda_showcase_variant == 'featured' and miranda_showcase_link_label != blank and miranda_showcase_link != blank %}
+    <div class="miranda-product-showcase__footer-link">
+      <a class="miranda-product-showcase__link" href="{{ miranda_showcase_link }}">
+        {{ miranda_showcase_link_label | escape }}
+      </a>
+    </div>
+  {% endif %}
+
   <div
     class="section-resource-list__content"
     style="--horizontal-alignment: {{ section.settings.horizontal_alignment }};"
@@ -85,6 +128,278 @@
     {%- content_for 'blocks' -%}
   </div>
 </div>
+
+{% stylesheet %}
+  .product-list--miranda-showcase {
+    --miranda-product-accent: #ffadbe;
+    --miranda-product-text: #24201f;
+    --miranda-product-muted: rgb(36 32 31 / 0.64);
+    --resource-list-column-gap-desktop: clamp(20px, 2vw, 30px);
+    --resource-list-row-gap-desktop: clamp(34px, 4vw, 54px);
+    color: var(--miranda-product-text);
+  }
+
+  .product-list--miranda-showcase.section {
+    padding-block-start: clamp(64px, 6vw, 96px);
+    padding-block-end: clamp(64px, 6vw, 96px);
+  }
+
+  .miranda-product-showcase__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: clamp(20px, 4vw, 56px);
+    width: 100%;
+    margin-block-end: clamp(28px, 3vw, 44px);
+  }
+
+  .product-list--miranda-showcase-featured .miranda-product-showcase__header {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    gap: 14px;
+    margin-block-end: clamp(32px, 3.4vw, 48px);
+  }
+
+  .product-list--miranda-showcase-featured .miranda-product-showcase__header::after {
+    content: '';
+    width: 42px;
+    height: 1px;
+    background: var(--miranda-product-accent);
+  }
+
+  .miranda-product-showcase__heading-group {
+    display: grid;
+    gap: 8px;
+  }
+
+  .miranda-product-showcase__title {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.55rem, 2vw, 2.35rem);
+    font-weight: 500;
+    line-height: 1.05;
+    letter-spacing: 0.08em;
+    color: var(--miranda-product-text);
+  }
+
+  .miranda-product-showcase__description {
+    margin: 0;
+    max-width: 34rem;
+    font-size: clamp(0.92rem, 1vw, 1rem);
+    line-height: 1.55;
+    color: var(--miranda-product-muted);
+  }
+
+  .miranda-product-showcase__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    color: var(--miranda-product-text);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition: color var(--animation-speed) var(--ease-out-cubic),
+      transform var(--animation-speed) var(--ease-out-cubic);
+  }
+
+  .miranda-product-showcase__link:hover {
+    color: var(--miranda-product-accent);
+    transform: translateX(3px);
+  }
+
+  .product-list--miranda-showcase .resource-list--grid {
+    --resource-list-column-gap: clamp(20px, 2vw, 30px);
+    --resource-list-row-gap: clamp(34px, 4vw, 54px);
+  }
+
+  .product-list--miranda-showcase .product-card,
+  .product-list--miranda-showcase .product-grid__card {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .product-list--miranda-showcase .product-grid__card {
+    gap: 10px;
+    overflow: visible;
+  }
+
+  .product-list--miranda-showcase .card-gallery {
+    --gallery-aspect-ratio: 4 / 5 !important;
+    border-radius: 2px;
+    background: rgb(255 173 190 / 0.09);
+  }
+
+  .product-list--miranda-showcase .card-gallery img,
+  .product-list--miranda-showcase .product-media-container img {
+    object-fit: cover;
+    transition: transform 420ms var(--ease-out-cubic);
+  }
+
+  .product-list--miranda-showcase product-card:hover .card-gallery img {
+    transform: scale(1.025);
+  }
+
+  .product-list--miranda-showcase .product-badges {
+    inset-block-start: 10px;
+    inset-inline-start: 10px;
+  }
+
+  .product-list--miranda-showcase .product-badges__badge {
+    border-radius: 1px;
+    padding: 6px 9px;
+    background: rgb(255 255 255 / 0.88);
+    color: var(--miranda-product-text);
+    box-shadow: none;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+  }
+
+  .product-list--miranda-showcase product-card a:not(.miranda-product-showcase__link) {
+    text-decoration: none;
+  }
+
+  .product-list--miranda-showcase product-card p[role='heading'] {
+    margin: 0;
+    color: var(--miranda-product-text);
+    font-size: clamp(0.84rem, 0.95vw, 0.95rem);
+    font-weight: 450;
+    line-height: 1.35;
+  }
+
+  .product-list--miranda-showcase product-price {
+    color: var(--miranda-product-text);
+    font-size: clamp(0.86rem, 0.95vw, 0.96rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  .product-list--miranda-showcase product-price .compare-at-price {
+    font-weight: 400;
+    color: rgb(36 32 31 / 0.44);
+  }
+
+  .product-list--miranda-showcase product-price .price {
+    color: var(--miranda-product-text);
+  }
+
+  .product-list--miranda-showcase product-price .price-item--regular {
+    margin-inline-start: 0.35em;
+    font-size: 0.92em;
+  }
+
+  .product-list--miranda-showcase-featured product-price .price:first-child:not(:only-child) {
+    color: color-mix(in srgb, var(--miranda-product-accent) 58%, var(--miranda-product-text));
+  }
+
+  .product-list--miranda-showcase button.quick-add__button {
+    --quick-add-background: rgb(255 255 255 / 0.9);
+    --quick-add-foreground: var(--miranda-product-text);
+    border: 1px solid rgb(36 32 31 / 0.14);
+    box-shadow: 0 10px 24px rgb(36 32 31 / 0.08);
+  }
+
+  .miranda-product-showcase__footer-link {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-block-start: clamp(30px, 3.4vw, 48px);
+  }
+
+  .product-list--miranda-showcase-featured .miranda-product-showcase__link {
+    position: relative;
+  }
+
+  .product-list--miranda-showcase-featured .miranda-product-showcase__link::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 5px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.22;
+    transition: opacity var(--animation-speed) var(--ease-out-cubic);
+  }
+
+  .product-list--miranda-showcase-featured .miranda-product-showcase__link:hover::after {
+    opacity: 0.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .product-list--miranda-showcase .card-gallery img,
+    .miranda-product-showcase__link {
+      transition: none;
+    }
+
+    .product-list--miranda-showcase product-card:hover .card-gallery img,
+    .miranda-product-showcase__link:hover {
+      transform: none;
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .product-list--miranda-showcase.section {
+      padding-block-start: 52px;
+      padding-block-end: 56px;
+    }
+
+    .miranda-product-showcase__header {
+      display: grid;
+      gap: 14px;
+      margin-block-end: 24px;
+    }
+
+    .miranda-product-showcase__title {
+      font-size: clamp(1.35rem, 6vw, 1.85rem);
+      letter-spacing: 0.07em;
+    }
+
+    .miranda-product-showcase__description {
+      font-size: 0.9rem;
+    }
+
+    .miranda-product-showcase__link {
+      justify-content: flex-start;
+      min-height: 40px;
+      font-size: 0.72rem;
+    }
+
+    .product-list--miranda-showcase-featured .miranda-product-showcase__header {
+      justify-items: start;
+      text-align: left;
+      gap: 12px;
+    }
+
+    .product-list--miranda-showcase .resource-list--grid {
+      --resource-list-column-gap: 12px;
+      --resource-list-row-gap: 30px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .product-list--miranda-showcase .product-grid__card {
+      gap: 8px;
+    }
+
+    .product-list--miranda-showcase product-card p[role='heading'] {
+      font-size: 0.82rem;
+      line-height: 1.32;
+    }
+
+    .product-list--miranda-showcase product-price {
+      font-size: 0.84rem;
+    }
+
+    .miranda-product-showcase__footer-link {
+      justify-content: flex-start;
+      margin-block-start: 26px;
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -109,6 +424,61 @@
       "type": "collection",
       "id": "collection",
       "label": "t:settings.collection"
+    },
+    {
+      "type": "header",
+      "content": "Miranda"
+    },
+    {
+      "type": "checkbox",
+      "id": "miranda_showcase_style",
+      "label": "Usar vitrine editorial Miranda",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "miranda_showcase_variant",
+      "label": "Estilo da vitrine",
+      "options": [
+        {
+          "value": "standard",
+          "label": "Padrão editorial"
+        },
+        {
+          "value": "featured",
+          "label": "Destaque"
+        }
+      ],
+      "default": "standard",
+      "visible_if": "{{ section.settings.miranda_showcase_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_showcase_title",
+      "label": "Título",
+      "default": "NOVIDADES",
+      "visible_if": "{{ section.settings.miranda_showcase_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_showcase_description",
+      "label": "Descrição",
+      "default": "Peças escolhidas para renovar seus looks.",
+      "visible_if": "{{ section.settings.miranda_showcase_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_showcase_link_label",
+      "label": "Texto do link",
+      "default": "VER TUDO →",
+      "visible_if": "{{ section.settings.miranda_showcase_style }}"
+    },
+    {
+      "type": "url",
+      "id": "miranda_showcase_link",
+      "label": "Link personalizado",
+      "info": "Se ficar vazio, usa automaticamente o link da coleção selecionada.",
+      "visible_if": "{{ section.settings.miranda_showcase_style }}"
     },
     {
       "type": "select",

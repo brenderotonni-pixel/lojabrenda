@@ -1,6 +1,15 @@
 
 
 {% liquid
+  assign miranda_categories_style = true
+  if section.settings.miranda_categories_style == false
+    assign miranda_categories_style = false
+  endif
+
+  assign miranda_categories_title = section.settings.miranda_categories_title | default: 'COMPRE POR CATEGORIA'
+  assign miranda_categories_description = section.settings.miranda_categories_description | default: 'Encontre peças para cada momento do seu estilo.'
+  assign miranda_categories_link_label = section.settings.miranda_categories_link_label | default: 'VER PEÇAS →'
+
   if section.settings.collection_list != blank
     assign section_collections = section.settings.collection_list
     assign max_items = section.settings.collection_list.count
@@ -31,6 +40,7 @@
     section--{{ section.settings.section_width }}
     {% if section.settings.background_color != blank %}color-custom-{{ section.id }}{% endif %}
     section-resource-list
+    {% if miranda_categories_style %} collection-list--miranda-categories{% endif %}
     spacing-style
     gap-style
   "
@@ -40,9 +50,21 @@
   "
   data-testid="collection-list"
 >
-  <div class="section-resource-list__content">
-    {%- content_for 'blocks' -%}
-  </div>
+  {% if miranda_categories_style %}
+    <header class="miranda-categories__header">
+      {% if miranda_categories_title != blank %}
+        <h2 class="miranda-categories__title">{{ miranda_categories_title | escape }}</h2>
+      {% endif %}
+
+      {% if miranda_categories_description != blank %}
+        <p class="miranda-categories__description">{{ miranda_categories_description | escape }}</p>
+      {% endif %}
+    </header>
+  {% else %}
+    <div class="section-resource-list__content">
+      {%- content_for 'blocks' -%}
+    </div>
+  {% endif %}
 
   {% if section_collections == null %}
     {% for i in (1..max_items) %}
@@ -55,7 +77,70 @@
   {% capture list_items %}
     {% for collection in section_collections limit: max_items %}
       <div class="resource-list__item">
-        {% content_for 'block', type: '_collection-card', id: 'static-collection-card', closest.collection: collection %}
+        {% if miranda_categories_style %}
+          {% liquid
+            assign custom_card_title = blank
+            assign custom_card_image = blank
+
+            case forloop.index
+              when 1
+                assign custom_card_title = section.settings.miranda_category_title_1
+                assign custom_card_image = section.settings.miranda_category_image_1
+              when 2
+                assign custom_card_title = section.settings.miranda_category_title_2
+                assign custom_card_image = section.settings.miranda_category_image_2
+              when 3
+                assign custom_card_title = section.settings.miranda_category_title_3
+                assign custom_card_image = section.settings.miranda_category_image_3
+              when 4
+                assign custom_card_title = section.settings.miranda_category_title_4
+                assign custom_card_image = section.settings.miranda_category_image_4
+            endcase
+
+            assign card_title = custom_card_title | default: collection.title | default: 'Categoria'
+            assign card_image = custom_card_image
+            if card_image == blank
+              assign card_image = collection.image
+            endif
+            if card_image == blank and collection.products.first.featured_image != blank
+              assign card_image = collection.products.first.featured_image
+            endif
+          %}
+
+          <a
+            class="miranda-category-card"
+            {% if collection.url != blank %}
+              href="{{ collection.url }}"
+            {% endif %}
+            aria-label="{{ card_title | escape }}"
+          >
+            <span class="miranda-category-card__media">
+              {% if card_image != blank %}
+                {{
+                  card_image
+                  | image_url: width: 1800
+                  | image_tag:
+                    widths: '360, 480, 720, 960, 1200, 1600, 1800',
+                    sizes: '(min-width: 990px) 25vw, (min-width: 750px) 50vw, 50vw',
+                    loading: 'lazy',
+                    class: 'miranda-category-card__image',
+                    alt: card_title
+                }}
+              {% else %}
+                {{ 'collection-apparel-1' | placeholder_svg_tag: 'miranda-category-card__placeholder' }}
+              {% endif %}
+            </span>
+
+            <span class="miranda-category-card__content">
+              <span class="miranda-category-card__title">{{ card_title | escape }}</span>
+              {% if miranda_categories_link_label != blank %}
+                <span class="miranda-category-card__link">{{ miranda_categories_link_label | escape }}</span>
+              {% endif %}
+            </span>
+          </a>
+        {% else %}
+          {% content_for 'block', type: '_collection-card', id: 'static-collection-card', closest.collection: collection %}
+        {% endif %}
       </div>
       {% unless forloop.last %}
         <!--@list/split-->
@@ -78,6 +163,207 @@
     test_id: 'collections-list-grid'
   %}
 </div>
+
+{% stylesheet %}
+  .collection-list--miranda-categories {
+    --miranda-category-accent: #ffadbe;
+    --miranda-category-text: #24201f;
+    --miranda-category-muted: rgb(36 32 31 / 0.64);
+    --resource-list-column-gap-desktop: clamp(14px, 1.6vw, 24px);
+    --resource-list-row-gap-desktop: clamp(14px, 1.8vw, 28px);
+    color: var(--miranda-category-text);
+  }
+
+  .collection-list--miranda-categories.section {
+    padding-block-start: clamp(72px, 6vw, 96px);
+    padding-block-end: clamp(72px, 6vw, 96px);
+  }
+
+  .collection-list--miranda-categories.section--full-width {
+    padding-inline: clamp(16px, 4vw, 64px);
+  }
+
+  .miranda-categories__header {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    margin-block-end: clamp(30px, 3vw, 42px);
+  }
+
+  .miranda-categories__title {
+    margin: 0;
+    font-family: var(--font-heading--family);
+    font-size: clamp(1.45rem, 2vw, 2.25rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: 0.08em;
+    color: var(--miranda-category-text);
+  }
+
+  .miranda-categories__description {
+    margin: 0;
+    max-width: 34rem;
+    font-size: clamp(0.92rem, 1vw, 1rem);
+    line-height: 1.55;
+    color: var(--miranda-category-muted);
+  }
+
+  .collection-list--miranda-categories .resource-list--grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(14px, 1.8vw, 28px) clamp(14px, 1.6vw, 24px);
+  }
+
+  .miranda-category-card {
+    position: relative;
+    display: block;
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    color: #fff;
+    text-decoration: none;
+    isolation: isolate;
+    background: rgb(255 173 190 / 0.1);
+  }
+
+  .miranda-category-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to top,
+      rgb(0 0 0 / 0.46) 0%,
+      rgb(0 0 0 / 0.2) 34%,
+      rgb(0 0 0 / 0) 68%
+    );
+    transition: opacity 360ms var(--ease-out-cubic);
+  }
+
+  .miranda-category-card__media {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+
+  .miranda-category-card__image,
+  .miranda-category-card__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 420ms var(--ease-out-cubic);
+  }
+
+  .miranda-category-card__content {
+    position: absolute;
+    inset-inline: clamp(14px, 1.6vw, 24px);
+    inset-block-end: clamp(16px, 1.8vw, 26px);
+    z-index: 2;
+    display: grid;
+    gap: 7px;
+  }
+
+  .miranda-category-card__title {
+    font-size: clamp(0.9rem, 1vw, 1.05rem);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 18px rgb(0 0 0 / 0.22);
+  }
+
+  .miranda-category-card__link {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    opacity: 0.92;
+    transition: transform 320ms var(--ease-out-cubic), opacity 320ms var(--ease-out-cubic);
+  }
+
+  .miranda-category-card:focus-visible {
+    outline: 2px solid var(--miranda-category-accent);
+    outline-offset: 4px;
+  }
+
+  @media (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .miranda-category-card:hover::after {
+      opacity: 0.88;
+    }
+
+    .miranda-category-card:hover .miranda-category-card__image,
+    .miranda-category-card:hover .miranda-category-card__placeholder {
+      transform: scale(1.035);
+    }
+
+    .miranda-category-card:hover .miranda-category-card__link {
+      opacity: 1;
+      transform: translateX(4px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .miranda-category-card::after,
+    .miranda-category-card__image,
+    .miranda-category-card__placeholder,
+    .miranda-category-card__link {
+      transition: none;
+    }
+  }
+
+  @media screen and (min-width: 990px) {
+    .collection-list--miranda-categories .resource-list--grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .collection-list--miranda-categories.section {
+      padding-block-start: 52px;
+      padding-block-end: 60px;
+    }
+
+    .miranda-categories__header {
+      margin-block-end: 24px;
+    }
+
+    .miranda-categories__title {
+      font-size: clamp(1.3rem, 5.4vw, 1.75rem);
+      letter-spacing: 0.07em;
+    }
+
+    .miranda-categories__description {
+      font-size: 0.9rem;
+    }
+
+    .collection-list--miranda-categories .resource-list--grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .miranda-category-card__content {
+      inset-inline: 12px;
+      inset-block-end: 14px;
+      gap: 6px;
+    }
+
+    .miranda-category-card__title {
+      font-size: clamp(0.74rem, 3.2vw, 0.88rem);
+      letter-spacing: 0.08em;
+    }
+
+    .miranda-category-card__link {
+      font-size: clamp(0.62rem, 2.7vw, 0.7rem);
+      letter-spacing: 0.12em;
+    }
+  }
+{% endstylesheet %}
 
 {% schema %}
 {
@@ -123,6 +409,94 @@
       "type": "collection_list",
       "id": "collection_list",
       "label": "t:settings.collection_list"
+    },
+    {
+      "type": "header",
+      "content": "Miranda"
+    },
+    {
+      "type": "checkbox",
+      "id": "miranda_categories_style",
+      "label": "Usar categorias editoriais Miranda",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "miranda_categories_title",
+      "label": "Título da seção",
+      "default": "COMPRE POR CATEGORIA",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_categories_description",
+      "label": "Descrição",
+      "default": "Encontre peças para cada momento do seu estilo.",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_categories_link_label",
+      "label": "Texto do link nos cards",
+      "default": "VER PEÇAS →",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "header",
+      "content": "Cards Miranda",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_category_title_1",
+      "label": "Título personalizado 1",
+      "placeholder": "Usa o nome da coleção",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_category_image_1",
+      "label": "Imagem personalizada 1",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_category_title_2",
+      "label": "Título personalizado 2",
+      "placeholder": "Usa o nome da coleção",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_category_image_2",
+      "label": "Imagem personalizada 2",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_category_title_3",
+      "label": "Título personalizado 3",
+      "placeholder": "Usa o nome da coleção",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_category_image_3",
+      "label": "Imagem personalizada 3",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_category_title_4",
+      "label": "Título personalizado 4",
+      "placeholder": "Usa o nome da coleção",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_category_image_4",
+      "label": "Imagem personalizada 4",
+      "visible_if": "{{ section.settings.miranda_categories_style }}"
     },
     {
       "type": "header",

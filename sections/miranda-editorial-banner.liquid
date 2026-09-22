@@ -1,0 +1,698 @@
+{% liquid
+  assign desktop_image = section.settings.image_desktop
+  assign mobile_image = section.settings.image_mobile | default: desktop_image
+  assign image_alt = section.settings.image_alt | default: section.settings.headline_line_1 | default: shop.name
+  assign accent_color = section.settings.accent_color | default: '#FFADBE'
+  assign overlay_opacity = section.settings.overlay_opacity | divided_by: 100.0
+  assign eyebrow = section.settings.eyebrow | default: 'NOVA COLEÇÃO'
+  assign headline_line_1 = section.settings.headline_line_1 | default: 'Vista o novo.'
+  assign headline_line_2 = section.settings.headline_line_2 | default: 'Encontre o seu.'
+  assign description = section.settings.description | default: 'Peças que chegam para transformar seus looks e acompanhar o seu estilo.'
+  assign cta_label = section.settings.cta_label | default: 'CONHECER NOVIDADES →'
+  assign desktop_position = section.settings.desktop_position | default: 'right'
+  assign text_alignment = section.settings.text_alignment | default: 'center'
+  assign text_color_scheme = section.settings.text_color_scheme | default: 'light'
+
+  if headline_line_1 == 'Novidades'
+    assign eyebrow = 'NOVA COLEÇÃO'
+    assign headline_line_1 = 'Vista o novo.'
+    assign headline_line_2 = 'Encontre o seu.'
+    assign description = 'Peças que chegam para transformar seus looks e acompanhar o seu estilo.'
+    assign cta_label = 'CONHECER NOVIDADES →'
+    assign desktop_position = 'right'
+    assign text_alignment = 'center'
+    assign text_color_scheme = 'light'
+  endif
+
+  if headline_line_1 == 'Seu estilo,'
+    assign headline_line_1 = 'Vista o novo.'
+  endif
+
+  if headline_line_2 == 'do seu jeito.'
+    assign headline_line_2 = 'Encontre o seu.'
+  endif
+
+  if description == 'Peças para acompanhar todos os seus momentos.'
+    assign description = 'Peças que chegam para transformar seus looks e acompanhar o seu estilo.'
+  endif
+
+  if cta_label == 'CONHECER COLEÇÃO →'
+    assign cta_label = 'CONHECER NOVIDADES →'
+  endif
+
+  assign cta_label_clean = cta_label | remove: '→' | strip
+%}
+
+<section
+  class="
+    miranda-editorial-banner
+    miranda-editorial-banner--desktop-{{ desktop_position }}
+    miranda-editorial-banner--mobile-{{ section.settings.mobile_position }}
+    miranda-editorial-banner--text-{{ text_color_scheme }}
+    miranda-editorial-banner--align-{{ text_alignment }}
+  "
+  style="
+    --miranda-banner-accent: {{ accent_color }};
+    --miranda-banner-overlay-color: {{ section.settings.overlay_color }};
+    --miranda-banner-overlay-opacity: {{ overlay_opacity }};
+    --miranda-banner-height-desktop: {{ section.settings.height_desktop }}px;
+    --miranda-banner-height-mobile: {{ section.settings.height_mobile }}px;
+    --miranda-banner-image-position-desktop: {{ section.settings.image_position_desktop }};
+    --miranda-banner-image-position-mobile: {{ section.settings.image_position_mobile }};
+  "
+>
+  <div class="miranda-editorial-banner__media">
+    {% if desktop_image != blank %}
+      <picture>
+        {% if mobile_image != blank %}
+          <source
+            media="(max-width: 749px)"
+            srcset="
+              {{ mobile_image | image_url: width: 375 }} 375w,
+              {{ mobile_image | image_url: width: 550 }} 550w,
+              {{ mobile_image | image_url: width: 750 }} 750w,
+              {{ mobile_image | image_url: width: 950 }} 950w
+            "
+            sizes="100vw"
+          >
+        {% endif %}
+
+        {{
+          desktop_image
+          | image_url: width: 2400
+          | image_tag:
+            widths: '750, 1100, 1500, 1800, 2200, 2400',
+            sizes: '100vw',
+            loading: 'lazy',
+            class: 'miranda-editorial-banner__image',
+            alt: image_alt
+        }}
+      </picture>
+    {% else %}
+      {{ 'lifestyle-1' | placeholder_svg_tag: 'miranda-editorial-banner__placeholder' }}
+    {% endif %}
+  </div>
+
+  <div class="miranda-editorial-banner__overlay"></div>
+
+  <div class="miranda-editorial-banner__content">
+    {% if eyebrow != blank %}
+      <p class="miranda-editorial-banner__eyebrow">{{ eyebrow | escape }}</p>
+    {% endif %}
+
+    {% if headline_line_1 != blank or headline_line_2 != blank %}
+      <h2 class="miranda-editorial-banner__headline">
+        {% if headline_line_1 != blank %}
+          <span class="miranda-editorial-banner__headline-line miranda-editorial-banner__headline-line--primary">
+            {{ headline_line_1 | escape }}
+          </span>
+        {% endif %}
+        {% if headline_line_2 != blank %}
+          <em class="miranda-editorial-banner__headline-line miranda-editorial-banner__headline-line--accent">
+            {{ headline_line_2 | escape }}
+          </em>
+        {% endif %}
+      </h2>
+    {% endif %}
+
+    {% if description != blank %}
+      <p class="miranda-editorial-banner__description">{{ description | escape }}</p>
+    {% endif %}
+
+    {% if cta_label != blank %}
+      {% if section.settings.cta_link != blank %}
+        <a
+          class="miranda-editorial-banner__cta miranda-editorial-banner__cta--{{ section.settings.cta_style }}"
+          href="{{ section.settings.cta_link }}"
+        >
+          <span>{{ cta_label_clean | escape }}</span>
+          <span class="miranda-editorial-banner__cta-arrow" aria-hidden="true">→</span>
+        </a>
+      {% else %}
+        <span class="miranda-editorial-banner__cta miranda-editorial-banner__cta--link miranda-editorial-banner__cta--disabled">
+          <span>{{ cta_label_clean | escape }}</span>
+          <span class="miranda-editorial-banner__cta-arrow" aria-hidden="true">→</span>
+        </span>
+      {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+{% stylesheet %}
+  .miranda-editorial-banner {
+    --miranda-banner-copy-color: #24201f;
+    --miranda-banner-muted-color: rgb(36 32 31 / 0.72);
+    --miranda-banner-eyebrow-color: var(--miranda-banner-accent);
+    --miranda-banner-editorial-serif: Didot, "Bodoni 72", "Bodoni 72 Smallcaps", Baskerville, "Cormorant Garamond",
+      "Playfair Display", Georgia, serif;
+    position: relative;
+    display: grid;
+    min-height: var(--miranda-banner-height-desktop);
+    overflow: hidden;
+    isolation: isolate;
+    color: #24201f;
+    background: rgb(255 173 190 / 0.08);
+  }
+
+  .miranda-editorial-banner--text-light {
+    --miranda-banner-copy-color: #fff7f4;
+    --miranda-banner-muted-color: rgb(255 247 244 / 0.86);
+    --miranda-banner-eyebrow-color: rgb(255 220 226 / 0.9);
+    color: var(--miranda-banner-copy-color);
+  }
+
+  .miranda-editorial-banner__media,
+  .miranda-editorial-banner__media picture,
+  .miranda-editorial-banner__overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .miranda-editorial-banner__media {
+    z-index: 0;
+  }
+
+  .miranda-editorial-banner__media picture {
+    display: block;
+  }
+
+  .miranda-editorial-banner__image,
+  .miranda-editorial-banner__placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--miranda-banner-image-position-desktop);
+  }
+
+  .miranda-editorial-banner__placeholder {
+    display: block;
+  }
+
+  .miranda-editorial-banner__overlay {
+    z-index: 1;
+    background: var(--miranda-banner-overlay-color);
+    opacity: var(--miranda-banner-overlay-opacity);
+    pointer-events: none;
+  }
+
+  .miranda-editorial-banner__content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: clamp(14px, 1.5vw, 22px);
+    width: min(50vw, 720px);
+    margin-inline-end: clamp(2rem, 5vw, 6rem);
+    padding: clamp(40px, 5.4vw, 84px) clamp(28px, 4vw, 64px);
+    text-align: left;
+  }
+
+  .miranda-editorial-banner--align-center .miranda-editorial-banner__content {
+    justify-items: center;
+    text-align: center;
+  }
+
+  .miranda-editorial-banner--align-right .miranda-editorial-banner__content {
+    justify-items: end;
+    text-align: right;
+  }
+
+  .miranda-editorial-banner--desktop-left {
+    justify-items: start;
+  }
+
+  .miranda-editorial-banner--desktop-center {
+    justify-items: center;
+  }
+
+  .miranda-editorial-banner--desktop-right {
+    justify-items: end;
+  }
+
+  .miranda-editorial-banner--desktop-right .miranda-editorial-banner__content {
+    --miranda-banner-copy-color: #fff7f4;
+    --miranda-banner-muted-color: rgb(255 247 244 / 0.86);
+    --miranda-banner-eyebrow-color: rgb(255 220 226 / 0.9);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .miranda-editorial-banner--desktop-right .miranda-editorial-banner__cta {
+    justify-self: center;
+  }
+
+  .miranda-editorial-banner__eyebrow {
+    margin: 0;
+    color: var(--miranda-banner-eyebrow-color);
+    font-family: var(--font-subheading--family);
+    font-size: clamp(0.68rem, 0.78vw, 0.82rem);
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+  }
+
+  .miranda-editorial-banner__headline {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    color: var(--miranda-banner-copy-color);
+    font-family: var(--miranda-banner-editorial-serif);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .miranda-editorial-banner__headline-line {
+    display: block;
+  }
+
+  .miranda-editorial-banner__headline-line--primary {
+    font-size: clamp(3.8rem, 4.7vw, 6rem);
+  }
+
+  .miranda-editorial-banner__headline-line--accent {
+    margin-top: -0.07em;
+    color: var(--miranda-banner-accent);
+    font-size: clamp(4rem, 5vw, 6.5rem);
+    font-style: italic;
+  }
+
+  .miranda-editorial-banner__description {
+    margin: 0;
+    max-width: 31.25rem;
+    color: var(--miranda-banner-muted-color);
+    font-family: var(--font-body--family);
+    font-size: clamp(1rem, 1vw, 1.18rem);
+    line-height: 1.55;
+    text-wrap: balance;
+  }
+
+  .miranda-editorial-banner__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    justify-self: start;
+    min-height: 44px;
+    width: fit-content;
+    gap: 0.65rem;
+    margin-block-start: clamp(2px, 0.4vw, 8px);
+    color: var(--miranda-banner-copy-color);
+    font-family: var(--font-subheading--family);
+    font-size: clamp(0.72rem, 0.8vw, 0.82rem);
+    font-weight: 600;
+    letter-spacing: 0.17em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 300ms var(--ease-out-cubic), transform 300ms var(--ease-out-cubic),
+      background-color 300ms var(--ease-out-cubic);
+  }
+
+  .miranda-editorial-banner--align-center .miranda-editorial-banner__cta {
+    justify-self: center;
+  }
+
+  .miranda-editorial-banner--align-right .miranda-editorial-banner__cta {
+    justify-self: end;
+  }
+
+  .miranda-editorial-banner__cta--link {
+    position: relative;
+    padding-block: 8px;
+  }
+
+  .miranda-editorial-banner__cta--link::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 2px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.28;
+    transition: opacity 300ms var(--ease-out-cubic);
+  }
+
+  .miranda-editorial-banner__cta--button {
+    min-width: min(100%, 280px);
+    padding-inline: 28px;
+    background: var(--miranda-banner-accent);
+    color: #fff;
+  }
+
+  .miranda-editorial-banner__cta--disabled {
+    cursor: default;
+  }
+
+  .miranda-editorial-banner__cta-arrow {
+    display: inline-block;
+    transition: transform 300ms var(--ease-out-cubic);
+  }
+
+  .miranda-editorial-banner__cta:hover .miranda-editorial-banner__cta-arrow {
+    transform: translateX(4px);
+  }
+
+  .miranda-editorial-banner__cta--link:hover::after {
+    opacity: 0.6;
+  }
+
+  .miranda-editorial-banner__cta:focus-visible {
+    outline: 2px solid var(--miranda-banner-accent);
+    outline-offset: 5px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .miranda-editorial-banner__cta,
+    .miranda-editorial-banner__cta--link::after,
+    .miranda-editorial-banner__cta-arrow {
+      transition: none;
+    }
+
+    .miranda-editorial-banner__cta:hover,
+    .miranda-editorial-banner__cta:hover .miranda-editorial-banner__cta-arrow {
+      transform: none;
+    }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .miranda-editorial-banner__content {
+      width: min(52vw, 560px);
+      margin-inline-end: clamp(1.25rem, 3vw, 3rem);
+      padding-inline: clamp(24px, 3vw, 42px);
+    }
+
+    .miranda-editorial-banner__headline-line--primary {
+      font-size: clamp(3rem, 5vw, 4.6rem);
+    }
+
+    .miranda-editorial-banner__headline-line--accent {
+      font-size: clamp(3.2rem, 5.3vw, 4.9rem);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .miranda-editorial-banner {
+      min-height: var(--miranda-banner-height-mobile);
+    }
+
+    .miranda-editorial-banner__image,
+    .miranda-editorial-banner__placeholder {
+      object-position: var(--miranda-banner-image-position-mobile);
+    }
+
+    .miranda-editorial-banner__content {
+      width: min(100%, 420px);
+      margin-inline: 0;
+      padding: 32px 20px;
+      gap: 12px;
+      text-align: center;
+    }
+
+    .miranda-editorial-banner--mobile-bottom-left {
+      align-items: end;
+      justify-items: start;
+    }
+
+    .miranda-editorial-banner--mobile-bottom-center {
+      align-items: end;
+      justify-items: center;
+    }
+
+    .miranda-editorial-banner--mobile-center {
+      align-items: center;
+      justify-items: center;
+    }
+
+    .miranda-editorial-banner--mobile-bottom-center .miranda-editorial-banner__content,
+    .miranda-editorial-banner--mobile-center .miranda-editorial-banner__content {
+      justify-items: center;
+      text-align: center;
+    }
+
+    .miranda-editorial-banner__headline {
+      line-height: 0.98;
+    }
+
+    .miranda-editorial-banner__headline-line--primary {
+      font-size: clamp(2.35rem, 11.2vw, 3.45rem);
+    }
+
+    .miranda-editorial-banner__headline-line--accent {
+      max-width: 9.5ch;
+      margin-inline: auto;
+      font-size: clamp(2.48rem, 11.8vw, 3.7rem);
+    }
+
+    .miranda-editorial-banner__description {
+      max-width: 21rem;
+      font-size: clamp(0.92rem, 3.6vw, 1rem);
+    }
+
+    .miranda-editorial-banner__cta {
+      min-height: 44px;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+    }
+
+    .miranda-editorial-banner__cta--button {
+      width: min(100%, 320px);
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Banner editorial Miranda",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image_desktop",
+      "label": "Imagem desktop"
+    },
+    {
+      "type": "image_picker",
+      "id": "image_mobile",
+      "label": "Imagem mobile"
+    },
+    {
+      "type": "text",
+      "id": "image_alt",
+      "label": "Texto alternativo da imagem",
+      "default": "Campanha editorial Miranda"
+    },
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "NOVA COLEÇÃO"
+    },
+    {
+      "type": "text",
+      "id": "headline_line_1",
+      "label": "Headline linha 1",
+      "default": "Vista o novo."
+    },
+    {
+      "type": "text",
+      "id": "headline_line_2",
+      "label": "Headline linha 2",
+      "default": "Encontre o seu."
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Descrição",
+      "default": "Peças que chegam para transformar seus looks e acompanhar o seu estilo."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Texto do CTA",
+      "default": "CONHECER NOVIDADES →"
+    },
+    {
+      "type": "url",
+      "id": "cta_link",
+      "label": "Link do CTA"
+    },
+    {
+      "type": "select",
+      "id": "cta_style",
+      "label": "Estilo do CTA",
+      "options": [
+        {
+          "value": "link",
+          "label": "Link editorial"
+        },
+        {
+          "value": "button",
+          "label": "Botão Miranda"
+        }
+      ],
+      "default": "link"
+    },
+    {
+      "type": "select",
+      "id": "desktop_position",
+      "label": "Posição desktop",
+      "options": [
+        {
+          "value": "left",
+          "label": "Esquerda"
+        },
+        {
+          "value": "center",
+          "label": "Centro"
+        },
+        {
+          "value": "right",
+          "label": "Direita"
+        }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "select",
+      "id": "mobile_position",
+      "label": "Posição mobile",
+      "options": [
+        {
+          "value": "bottom-left",
+          "label": "Inferior esquerda"
+        },
+        {
+          "value": "bottom-center",
+          "label": "Inferior centro"
+        },
+        {
+          "value": "center",
+          "label": "Centro"
+        }
+      ],
+      "default": "bottom-left"
+    },
+    {
+      "type": "text_alignment",
+      "id": "text_alignment",
+      "label": "Alinhamento do texto",
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "text_color_scheme",
+      "label": "Cor do texto",
+      "options": [
+        {
+          "value": "dark",
+          "label": "Escuro"
+        },
+        {
+          "value": "light",
+          "label": "Claro"
+        }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Cor de destaque",
+      "default": "#FFADBE"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Cor do overlay",
+      "alpha": true,
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Intensidade do overlay",
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "unit": "%",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "height_desktop",
+      "label": "Altura desktop",
+      "min": 420,
+      "max": 720,
+      "step": 10,
+      "unit": "px",
+      "default": 580
+    },
+    {
+      "type": "range",
+      "id": "height_mobile",
+      "label": "Altura mobile",
+      "min": 460,
+      "max": 680,
+      "step": 10,
+      "unit": "px",
+      "default": 560
+    },
+    {
+      "type": "select",
+      "id": "image_position_desktop",
+      "label": "Foco da imagem desktop",
+      "options": [
+        {
+          "value": "left center",
+          "label": "Esquerda"
+        },
+        {
+          "value": "center center",
+          "label": "Centro"
+        },
+        {
+          "value": "right center",
+          "label": "Direita"
+        }
+      ],
+      "default": "center center"
+    },
+    {
+      "type": "select",
+      "id": "image_position_mobile",
+      "label": "Foco da imagem mobile",
+      "options": [
+        {
+          "value": "left center",
+          "label": "Esquerda"
+        },
+        {
+          "value": "center center",
+          "label": "Centro"
+        },
+        {
+          "value": "right center",
+          "label": "Direita"
+        },
+        {
+          "value": "center top",
+          "label": "Topo"
+        },
+        {
+          "value": "center bottom",
+          "label": "Base"
+        }
+      ],
+      "default": "center center"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Banner editorial Miranda",
+      "category": "Imagem"
+    }
+  ]
+}
+{% endschema %}

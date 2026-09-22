@@ -1,0 +1,332 @@
+{% liquid
+  assign show_section = section.settings.show_section
+  if show_section == nil
+    assign show_section = true
+  endif
+
+  if section.settings.background_color != blank
+    render 'contrast-override', background_color: section.settings.background_color, section_id: section.id, skip_contrast: true
+  endif
+%}
+
+{% if show_section %}
+  <div
+    class="section-background{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+  ></div>
+
+  <section
+    class="miranda-benefits section section--{{ section.settings.section_width }}{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}"
+    style="
+      --miranda-benefits-background: {{ section.settings.background_color | default: '#fffaf8' }};
+      --miranda-benefits-border: {{ section.settings.divider_color | default: '#eadde0' }};
+      --miranda-benefits-text: {{ section.settings.text_color | default: '#161616' }};
+    "
+    {{ section.shopify_attributes }}
+  >
+    <div class="miranda-benefits__grid">
+      {% for block in section.blocks %}
+        <div
+          class="miranda-benefits__item"
+          {{ block.shopify_attributes }}
+        >
+          <div class="miranda-benefits__icon" aria-hidden="true">
+            {% case block.settings.icon %}
+              {% when 'card' %}
+                <svg viewBox="0 0 32 32" focusable="false">
+                  <rect x="4" y="8" width="24" height="16" rx="2.5"></rect>
+                  <path d="M4 13h24"></path>
+                  <path d="M9 20h5"></path>
+                </svg>
+              {% when 'exchange' %}
+                <svg viewBox="0 0 32 32" focusable="false">
+                  <path d="M6 11.5 16 6l10 5.5v9L16 26 6 20.5z"></path>
+                  <path d="M6 11.5 16 17l10-5.5"></path>
+                  <path d="M16 17v9"></path>
+                  <path d="M11 10l10 5.5"></path>
+                </svg>
+              {% when 'shield' %}
+                <svg viewBox="0 0 32 32" focusable="false">
+                  <path d="M16 4.5 26 8v7.5c0 6.2-4 10.3-10 12-6-1.7-10-5.8-10-12V8z"></path>
+                  <path d="m11.5 15.8 3.2 3.2 6-6.4"></path>
+                </svg>
+              {% else %}
+                <svg viewBox="0 0 32 32" focusable="false">
+                  <path d="M4 9h15v12H4z"></path>
+                  <path d="M19 13h4.8l4.2 4.5V21h-9z"></path>
+                  <circle cx="10" cy="23" r="2.5"></circle>
+                  <circle cx="24" cy="23" r="2.5"></circle>
+                  <path d="M4 21h3.5M12.5 21H21.5"></path>
+                </svg>
+            {% endcase %}
+          </div>
+
+          <div class="miranda-benefits__copy">
+            {% if block.settings.title != blank %}
+              <h2 class="miranda-benefits__title">{{ block.settings.title | escape }}</h2>
+            {% endif %}
+
+            {% if block.settings.text != blank %}
+              <p class="miranda-benefits__text">{{ block.settings.text | escape }}</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% stylesheet %}
+  .miranda-benefits {
+    color: var(--miranda-benefits-text);
+    background: var(--miranda-benefits-background);
+    border-block: 1px solid var(--miranda-benefits-border);
+  }
+
+  .miranda-benefits__grid {
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    min-height: 92px;
+    align-items: center;
+  }
+
+  .section--full-width .miranda-benefits__grid {
+    grid-column: 1 / -1;
+    max-width: var(--page-width);
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--page-margin);
+  }
+
+  .miranda-benefits__item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.75rem, 1.2vw, 1.15rem);
+    min-height: 72px;
+    padding: 1rem clamp(1rem, 1.8vw, 2rem);
+  }
+
+  .miranda-benefits__item + .miranda-benefits__item {
+    border-inline-start: 1px solid var(--miranda-benefits-border);
+  }
+
+  .miranda-benefits__icon {
+    flex: 0 0 auto;
+    width: 32px;
+    height: 32px;
+    color: currentColor;
+  }
+
+  .miranda-benefits__icon svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .miranda-benefits__copy {
+    min-width: 0;
+  }
+
+  .miranda-benefits__title {
+    margin: 0;
+    font-family: var(--font-subheading--family);
+    font-size: clamp(0.72rem, 0.78vw, 0.86rem);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .miranda-benefits__text {
+    margin: 0.24rem 0 0;
+    font-family: var(--font-body--family);
+    font-size: clamp(0.78rem, 0.82vw, 0.92rem);
+    font-weight: 400;
+    line-height: 1.35;
+    color: rgb(22 22 22 / 76%);
+  }
+
+  @media screen and (max-width: 749px) {
+    .miranda-benefits__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      min-height: 0;
+      padding-block: 0.65rem;
+    }
+
+    .miranda-benefits__item {
+      justify-content: flex-start;
+      gap: 0.7rem;
+      min-height: 78px;
+      padding: 0.85rem clamp(0.85rem, 4vw, 1.25rem);
+    }
+
+    .miranda-benefits__item + .miranda-benefits__item {
+      border-inline-start: 0;
+    }
+
+    .miranda-benefits__item:nth-child(even) {
+      border-inline-start: 1px solid var(--miranda-benefits-border);
+    }
+
+    .miranda-benefits__item:nth-child(n + 3) {
+      border-block-start: 1px solid var(--miranda-benefits-border);
+    }
+
+    .miranda-benefits__icon {
+      width: 27px;
+      height: 27px;
+    }
+
+    .miranda-benefits__title {
+      font-size: clamp(0.62rem, 2.9vw, 0.72rem);
+      letter-spacing: 0.1em;
+    }
+
+    .miranda-benefits__text {
+      font-size: clamp(0.68rem, 3.1vw, 0.8rem);
+      line-height: 1.3;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Benefícios Miranda",
+  "tag": "div",
+  "class": "miranda-benefits-wrapper section-wrapper",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_section",
+      "label": "Mostrar seção",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Largura",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Tela inteira"
+        },
+        {
+          "value": "page-width",
+          "label": "Página"
+        }
+      ],
+      "default": "full-width"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Cor de fundo",
+      "default": "#fffaf8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Cor do texto",
+      "default": "#161616"
+    },
+    {
+      "type": "color",
+      "id": "divider_color",
+      "label": "Cor dos divisores",
+      "default": "#eadde0"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Benefício",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Ícone",
+          "options": [
+            {
+              "value": "truck",
+              "label": "Caminhão"
+            },
+            {
+              "value": "card",
+              "label": "Cartão"
+            },
+            {
+              "value": "exchange",
+              "label": "Caixa / troca"
+            },
+            {
+              "value": "shield",
+              "label": "Escudo"
+            }
+          ],
+          "default": "truck"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Título",
+          "default": "FRETE GRÁTIS"
+        },
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Descrição",
+          "default": "em compras acima de R$ 299"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Benefícios Miranda",
+      "category": "Banners",
+      "blocks": {
+        "shipping": {
+          "type": "benefit",
+          "settings": {
+            "icon": "truck",
+            "title": "FRETE GRÁTIS",
+            "text": "em compras acima de R$ 299"
+          }
+        },
+        "installments": {
+          "type": "benefit",
+          "settings": {
+            "icon": "card",
+            "title": "PARCELE EM ATÉ 6X",
+            "text": "sem juros"
+          }
+        },
+        "exchange": {
+          "type": "benefit",
+          "settings": {
+            "icon": "exchange",
+            "title": "TROCA FACILITADA",
+            "text": "sem burocracia"
+          }
+        },
+        "security": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "COMPRA SEGURA",
+            "text": "seus dados protegidos"
+          }
+        }
+      },
+      "block_order": ["shipping", "installments", "exchange", "security"]
+    }
+  ]
+}
+{% endschema %}

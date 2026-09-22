@@ -1,0 +1,486 @@
+{% liquid
+  assign eyebrow = section.settings.eyebrow
+  assign title = section.settings.title | default: '#VISTAMIRANDA'
+  assign description = section.settings.description | default: 'Inspire-se em quem veste Miranda.'
+  assign cta_label = section.settings.cta_label | default: 'SIGA @MIRANDA →'
+  assign cta_url = section.settings.cta_url
+%}
+
+<section
+  class="miranda-social-gallery"
+  style="
+    --miranda-social-padding-top: {{ section.settings.padding_top }}px;
+    --miranda-social-padding-bottom: {{ section.settings.padding_bottom }}px;
+  "
+>
+  <div class="miranda-social-gallery__inner">
+    <header class="miranda-social-gallery__header">
+      {% if eyebrow != blank %}
+        <p class="miranda-social-gallery__eyebrow">{{ eyebrow | escape }}</p>
+      {% endif %}
+
+      {% if title != blank %}
+        <h2 class="miranda-social-gallery__title">{{ title | escape }}</h2>
+      {% endif %}
+
+      {% if description != blank %}
+        <p class="miranda-social-gallery__description">{{ description | escape }}</p>
+      {% endif %}
+    </header>
+
+    <div class="miranda-social-gallery__track" aria-label="{{ title | escape }}">
+      {% if section.blocks.size > 0 %}
+        {% for block in section.blocks %}
+          {% liquid
+            assign item_image = block.settings.image
+            assign item_alt = block.settings.alt_text | default: block.settings.username | default: title
+            assign item_link = block.settings.link
+            assign item_username = block.settings.username
+            assign item_caption = block.settings.caption
+            assign placeholder_index = forloop.index0 | modulo: 4 | plus: 1
+            assign placeholder_name = 'collection-apparel-' | append: placeholder_index
+          %}
+
+          {% if item_link != blank %}
+            <a
+              class="miranda-social-gallery__item"
+              href="{{ item_link }}"
+              aria-label="{{ item_alt | escape }}"
+              {{ block.shopify_attributes }}
+            >
+          {% else %}
+            <div
+              class="miranda-social-gallery__item"
+              {{ block.shopify_attributes }}
+            >
+          {% endif %}
+
+            <span class="miranda-social-gallery__media">
+              {% if item_image != blank %}
+                {{
+                  item_image
+                  | image_url: width: 1200
+                  | image_tag:
+                    widths: '320, 480, 640, 800, 1000, 1200',
+                    sizes: '(min-width: 990px) 25vw, (min-width: 750px) 33vw, 72vw',
+                    loading: 'lazy',
+                    class: 'miranda-social-gallery__image',
+                    alt: item_alt
+                }}
+              {% else %}
+                {{ placeholder_name | placeholder_svg_tag: 'miranda-social-gallery__placeholder' }}
+              {% endif %}
+            </span>
+
+            {% if item_username != blank or item_caption != blank %}
+              <span class="miranda-social-gallery__overlay">
+                {% if item_username != blank %}
+                  <span class="miranda-social-gallery__username">{{ item_username | escape }}</span>
+                {% endif %}
+
+                {% if item_caption != blank %}
+                  <span class="miranda-social-gallery__caption">{{ item_caption | escape }}</span>
+                {% endif %}
+              </span>
+            {% endif %}
+
+          {% if item_link != blank %}
+            </a>
+          {% else %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {% for i in (1..4) %}
+          {% assign placeholder_name = 'collection-apparel-' | append: i %}
+          <div class="miranda-social-gallery__item">
+            <span class="miranda-social-gallery__media">
+              {{ placeholder_name | placeholder_svg_tag: 'miranda-social-gallery__placeholder' }}
+            </span>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {% if cta_label != blank and cta_url != blank %}
+      <div class="miranda-social-gallery__cta-wrap">
+        <a class="miranda-social-gallery__cta" href="{{ cta_url }}">
+          {{ cta_label | escape }}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% stylesheet %}
+  .miranda-social-gallery {
+    --miranda-social-accent: #ffadbe;
+    --miranda-social-text: #24201f;
+    --miranda-social-muted: rgb(36 32 31 / 0.64);
+    background: #fff;
+    color: var(--miranda-social-text);
+    padding-block: var(--miranda-social-padding-top) var(--miranda-social-padding-bottom);
+    overflow: hidden;
+  }
+
+  .miranda-social-gallery__inner {
+    width: min(100% - 32px, 1440px);
+    margin-inline: auto;
+  }
+
+  .miranda-social-gallery__header {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    margin-block-end: clamp(28px, 3.2vw, 44px);
+    text-align: center;
+  }
+
+  .miranda-social-gallery__eyebrow {
+    margin: 0;
+    color: var(--miranda-social-accent);
+    font-size: 0.74rem;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .miranda-social-gallery__title {
+    margin: 0;
+    font-family: Didot, 'Bodoni 72', 'Bodoni 72 Smallcaps', Baskerville, 'Cormorant Garamond',
+      'Playfair Display', Georgia, serif;
+    font-size: clamp(2.2rem, 3.2vw, 4rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0;
+  }
+
+  .miranda-social-gallery__description {
+    margin: 0;
+    color: var(--miranda-social-muted);
+    font-size: clamp(0.94rem, 1vw, 1.05rem);
+    line-height: 1.55;
+  }
+
+  .miranda-social-gallery__track {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(10px, 1.2vw, 16px);
+  }
+
+  .miranda-social-gallery__item {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    color: #fff;
+    background: rgb(255 173 190 / 0.1);
+    text-decoration: none;
+    isolation: isolate;
+  }
+
+  .miranda-social-gallery__media,
+  .miranda-social-gallery__image,
+  .miranda-social-gallery__placeholder {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .miranda-social-gallery__image,
+  .miranda-social-gallery__placeholder {
+    object-fit: cover;
+    transition: transform 420ms var(--ease-out-cubic);
+  }
+
+  .miranda-social-gallery__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    align-content: end;
+    gap: 5px;
+    padding: clamp(14px, 1.5vw, 22px);
+    background: linear-gradient(to top, rgb(0 0 0 / 0.38), rgb(0 0 0 / 0));
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 340ms var(--ease-out-cubic), transform 340ms var(--ease-out-cubic);
+  }
+
+  .miranda-social-gallery__username {
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .miranda-social-gallery__caption {
+    max-width: 18rem;
+    font-size: 0.86rem;
+    line-height: 1.35;
+  }
+
+  .miranda-social-gallery__item:focus-visible {
+    outline: 2px solid var(--miranda-social-accent);
+    outline-offset: 4px;
+  }
+
+  .miranda-social-gallery__cta-wrap {
+    display: flex;
+    justify-content: center;
+    margin-block-start: clamp(28px, 3vw, 42px);
+  }
+
+  .miranda-social-gallery__cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    color: var(--miranda-social-text);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 300ms var(--ease-out-cubic), transform 300ms var(--ease-out-cubic);
+  }
+
+  .miranda-social-gallery__cta::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 5px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.24;
+    transition: opacity 300ms var(--ease-out-cubic);
+  }
+
+  .miranda-social-gallery__cta:focus-visible {
+    outline: 2px solid var(--miranda-social-accent);
+    outline-offset: 5px;
+  }
+
+  @media (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .miranda-social-gallery__item:hover .miranda-social-gallery__image,
+    .miranda-social-gallery__item:hover .miranda-social-gallery__placeholder {
+      transform: scale(1.025);
+    }
+
+    .miranda-social-gallery__item:hover .miranda-social-gallery__overlay {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .miranda-social-gallery__cta:hover {
+      color: var(--miranda-social-accent);
+      transform: translateX(4px);
+    }
+
+    .miranda-social-gallery__cta:hover::after {
+      opacity: 0.55;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .miranda-social-gallery__image,
+    .miranda-social-gallery__placeholder,
+    .miranda-social-gallery__overlay,
+    .miranda-social-gallery__cta,
+    .miranda-social-gallery__cta::after {
+      transition: none;
+    }
+  }
+
+  @media screen and (min-width: 750px) and (max-width: 989px) {
+    .miranda-social-gallery__track {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .miranda-social-gallery {
+      padding-block: min(var(--miranda-social-padding-top), 60px) min(var(--miranda-social-padding-bottom), 64px);
+    }
+
+    .miranda-social-gallery__inner {
+      width: 100%;
+    }
+
+    .miranda-social-gallery__header,
+    .miranda-social-gallery__cta-wrap {
+      width: calc(100% - 32px);
+      margin-inline: auto;
+    }
+
+    .miranda-social-gallery__header {
+      margin-block-end: 24px;
+    }
+
+    .miranda-social-gallery__title {
+      font-size: clamp(2rem, 10vw, 3rem);
+    }
+
+    .miranda-social-gallery__track {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+      scroll-padding-inline: 16px;
+      scroll-snap-type: x mandatory;
+      padding-inline: 16px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .miranda-social-gallery__track::-webkit-scrollbar {
+      display: none;
+    }
+
+    .miranda-social-gallery__item {
+      flex: 0 0 min(72vw, 300px);
+      scroll-snap-align: start;
+    }
+
+    .miranda-social-gallery__overlay {
+      opacity: 1;
+      transform: none;
+      padding: 14px;
+    }
+
+    .miranda-social-gallery__caption {
+      display: none;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "#VistaMiranda",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Eyebrow",
+      "default": "NOSSO MUNDO"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Título",
+      "default": "#VISTAMIRANDA"
+    },
+    {
+      "type": "text",
+      "id": "description",
+      "label": "Descrição",
+      "default": "Inspire-se em quem veste Miranda."
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "Texto do CTA",
+      "default": "SIGA @MIRANDA →"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "URL do CTA"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "label": "Espaçamento superior",
+      "min": 40,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 88
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "label": "Espaçamento inferior",
+      "min": 40,
+      "max": 120,
+      "step": 4,
+      "unit": "px",
+      "default": 88
+    }
+  ],
+  "blocks": [
+    {
+      "type": "look",
+      "name": "Look",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Imagem"
+        },
+        {
+          "type": "text",
+          "id": "alt_text",
+          "label": "Texto alternativo"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link opcional"
+        },
+        {
+          "type": "text",
+          "id": "username",
+          "label": "@usuário"
+        },
+        {
+          "type": "text",
+          "id": "caption",
+          "label": "Legenda curta"
+        }
+      ]
+    }
+  ],
+  "max_blocks": 8,
+  "presets": [
+    {
+      "name": "#VistaMiranda",
+      "category": "Imagem",
+      "blocks": [
+        {
+          "type": "look",
+          "settings": {
+            "username": "@miranda",
+            "caption": "Inspiração para todos os dias"
+          }
+        },
+        {
+          "type": "look",
+          "settings": {
+            "username": "@miranda",
+            "caption": "Looks leves e femininos"
+          }
+        },
+        {
+          "type": "look",
+          "settings": {
+            "username": "@miranda",
+            "caption": "Peças para o seu momento"
+          }
+        },
+        {
+          "type": "look",
+          "settings": {
+            "username": "@miranda",
+            "caption": "Vista o que combina com você"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

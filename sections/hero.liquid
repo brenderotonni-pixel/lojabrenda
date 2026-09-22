@@ -112,6 +112,16 @@
   if section.index == 1
     assign fetch_priority = 'high'
   endif
+
+  assign miranda_desktop_image = section.settings.miranda_image_desktop
+  if miranda_desktop_image == blank and section.settings.image_1 != blank and section.settings.media_type_1 == 'image'
+    assign miranda_desktop_image = section.settings.image_1
+  endif
+
+  assign miranda_mobile_image = section.settings.miranda_image_mobile
+  if miranda_mobile_image == blank
+    assign miranda_mobile_image = miranda_desktop_image
+  endif
 %}
 
 {% capture media_slot_1 %}
@@ -461,12 +471,15 @@
 
 <div
   id="Hero-{{ section.id }}"
-  class="hero{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
+  class="hero{% if section.settings.miranda_campaign_layout %} hero--miranda-campaign{% endif %}{% if section.settings.background_color != blank %} color-custom-{{ section.id }}{% endif %}{% if section.blocks.size == 0 and section.settings.section_height == 'auto' %} hero--no-blocks-auto-height{% endif %}{% if section.settings.stack_media_on_mobile %} hero--stack-mobile{% endif %}"
   style="
     --hero-border-style: {{ section.settings.border }};
     --hero-border-width: {{ section.settings.border_width }}px;
     --hero-border-opacity: {{ section.settings.border_opacity }}%;
     --blur-opacity: {{ section.settings.reflection_opacity | divided_by: 100.0 }};
+    --miranda-accent-color: {{ section.settings.miranda_accent_color | default: '#FFADBE' }};
+    --miranda-image-position-desktop: {{ section.settings.miranda_image_position_desktop | default: 'left center' }};
+    --miranda-image-position-mobile: {{ section.settings.miranda_image_position_mobile | default: 'center top' }};
     {% if section.settings.section_height == 'custom' %}
       --hero-min-height: {{ section.settings.section_height_custom }}svh;
     {% elsif section.settings.section_height == "full-screen" %}
@@ -519,32 +532,137 @@
         {% endif %}
       ></a>
     {%- endif -%}
-    <div
-      class="hero__media-grid"
-      style="--hero-media-count: {{ media_count }};--hero-media-count-mobile: {{ media_count_mobile }};{%- if section.settings.image_1 != blank -%} --hero-media-aspect-ratio: {{ section.settings.image_1.aspect_ratio }};{% endif %}"
-      data-testid="hero-media-wrapper"
-    >
-      {% liquid
-        if section.settings.toggle_overlay
-          render 'overlay', settings: section.settings
-        endif
-      %}
-      {{ media }}
-    </div>
-    <div
-      class="
-        hero__content-wrapper
-        layout-panel-flex
-        layout-panel-flex--{{ section.settings.content_direction }}
-        {% if section.settings.vertical_on_mobile %}mobile-column{% endif %}
-        section-content-wrapper
-        {{section.settings.section_width}}
-        {% if request.design_mode %}hero__content-wrapper--design-mode{% endif %}
-      "
-      style="{% render 'layout-panel-style', settings: section.settings %}"
-    >
-      {% content_for 'blocks' %}
-    </div>
+    {% if section.settings.miranda_campaign_layout %}
+      <div
+        class="hero__media-grid miranda-hero__media-grid"
+        style="--hero-media-count: 1;--hero-media-count-mobile: 1;{%- if miranda_desktop_image != blank -%} --hero-media-aspect-ratio: {{ miranda_desktop_image.aspect_ratio }};{% endif %}"
+        data-testid="hero-media-wrapper"
+      >
+        {% liquid
+          if section.settings.toggle_overlay
+            render 'overlay', settings: section.settings
+          endif
+        %}
+
+        {% if miranda_desktop_image != blank %}
+          <picture class="hero__media miranda-hero__picture">
+            {% if miranda_mobile_image != blank %}
+              <source
+                media="(max-width: 749px)"
+                srcset="
+                  {%- for mobile_width in mobile_widths_array -%}
+                    {{ miranda_mobile_image | image_url: width: mobile_width }} {{ mobile_width }}w{% unless forloop.last %},{% endunless %}
+                  {%- endfor -%}
+                "
+                sizes="100vw"
+                width="{{ miranda_mobile_image.width }}"
+                height="{{ miranda_mobile_image.height }}"
+              >
+            {% endif %}
+            {{
+              miranda_desktop_image
+              | image_url: width: 3840
+              | image_tag:
+                width: miranda_desktop_image.width,
+                widths: widths,
+                height: miranda_desktop_image.height,
+                alt: '',
+                class: 'hero__media miranda-hero__media',
+                sizes: '100vw',
+                fetchpriority: fetch_priority,
+                data-testid: 'miranda-hero-image'
+            }}
+          </picture>
+        {% else %}
+          {{ 'hero-apparel-1' | placeholder_svg_tag: 'hero__media miranda-hero__media' }}
+        {% endif %}
+      </div>
+
+      <div
+        class="
+          hero__content-wrapper
+          miranda-hero__content-wrapper
+          section-content-wrapper
+          full-width
+          {% if request.design_mode %}hero__content-wrapper--design-mode{% endif %}
+        "
+      >
+        <div
+          class="miranda-hero__content miranda-hero__content--desktop-{{ section.settings.miranda_content_position_desktop | default: 'right_center' }} miranda-hero__content--mobile-{{ section.settings.miranda_content_position_mobile | default: 'bottom_center' }}"
+        >
+          <div class="miranda-hero__copy">
+            {% liquid
+              assign miranda_brand_text = section.settings.miranda_brand_text | default: 'miranda'
+              assign miranda_headline_line_1 = section.settings.miranda_headline_line_1 | default: 'Vista o que'
+              assign miranda_headline_line_2 = section.settings.miranda_headline_line_2 | default: 'combina com você.'
+              assign miranda_subheadline = section.settings.miranda_subheadline | default: 'PEÇAS ESCOLHIDAS PARA DEIXAR SEUS LOOKS AINDA MAIS INCRÍVEIS.'
+            %}
+
+            {% if section.settings.miranda_show_brand != false and miranda_brand_text != blank %}
+              <p class="miranda-hero__brand">{{ miranda_brand_text | escape }}</p>
+            {% endif %}
+
+            {% if miranda_headline_line_1 != blank or miranda_headline_line_2 != blank %}
+              <h1 class="miranda-hero__headline">
+                {% if miranda_headline_line_1 != blank %}
+                  <span class="miranda-hero__headline-line miranda-hero__headline-line--primary">
+                    {{ miranda_headline_line_1 | escape }}
+                  </span>
+                {% endif %}
+                {% if miranda_headline_line_2 != blank %}
+                  <span class="miranda-hero__headline-line miranda-hero__headline-line--accent">
+                    {{ miranda_headline_line_2 | escape }}
+                  </span>
+                {% endif %}
+              </h1>
+            {% endif %}
+
+            {% if miranda_subheadline != blank %}
+              <p class="miranda-hero__subheadline">{{ miranda_subheadline | escape | newline_to_br }}</p>
+            {% endif %}
+
+            {% if section.settings.miranda_cta_label != blank %}
+              {% if section.settings.miranda_cta_link != blank %}
+                <a class="miranda-hero__button" href="{{ section.settings.miranda_cta_link }}">
+                  {{ section.settings.miranda_cta_label | escape }}
+                </a>
+              {% else %}
+                <span class="miranda-hero__button miranda-hero__button--disabled" aria-disabled="true">
+                  {{ section.settings.miranda_cta_label | escape }}
+                </span>
+              {% endif %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div
+        class="hero__media-grid"
+        style="--hero-media-count: {{ media_count }};--hero-media-count-mobile: {{ media_count_mobile }};{%- if section.settings.image_1 != blank -%} --hero-media-aspect-ratio: {{ section.settings.image_1.aspect_ratio }};{% endif %}"
+        data-testid="hero-media-wrapper"
+      >
+        {% liquid
+          if section.settings.toggle_overlay
+            render 'overlay', settings: section.settings
+          endif
+        %}
+        {{ media }}
+      </div>
+      <div
+        class="
+          hero__content-wrapper
+          layout-panel-flex
+          layout-panel-flex--{{ section.settings.content_direction }}
+          {% if section.settings.vertical_on_mobile %}mobile-column{% endif %}
+          section-content-wrapper
+          {{section.settings.section_width}}
+          {% if request.design_mode %}hero__content-wrapper--design-mode{% endif %}
+        "
+        style="{% render 'layout-panel-style', settings: section.settings %}"
+      >
+        {% content_for 'blocks' %}
+      </div>
+    {% endif %}
   </div>
 </div>
 
@@ -762,6 +880,259 @@
       }
     }
   }
+
+  .hero--miranda-campaign {
+    --miranda-copy-color: #24201f;
+    --miranda-editorial-serif: Didot, "Bodoni 72", "Bodoni 72 Smallcaps", Baskerville, "Cormorant Garamond",
+      "Playfair Display", Georgia, serif;
+    min-height: clamp(520px, 74svh, 820px);
+  }
+
+  .hero--miranda-campaign .hero__container {
+    min-height: inherit;
+  }
+
+  .miranda-hero__media-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .miranda-hero__picture,
+  .miranda-hero__media {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .miranda-hero__media {
+    object-fit: cover;
+    object-position: var(--miranda-image-position-desktop);
+  }
+
+  .hero__content-wrapper.miranda-hero__content-wrapper {
+    grid-column: 1 / -1;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    padding: clamp(3rem, 5.2vw, 6.5rem);
+  }
+
+  .miranda-hero__content {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    min-height: inherit;
+    pointer-events: none;
+  }
+
+  .miranda-hero__content--desktop-right_center {
+    place-items: center end;
+  }
+
+  .miranda-hero__content--desktop-right_bottom {
+    place-items: end end;
+  }
+
+  .miranda-hero__content--desktop-center {
+    place-items: center;
+  }
+
+  .miranda-hero__copy {
+    width: min(47vw, 760px);
+    color: var(--miranda-copy-color);
+    text-align: center;
+    pointer-events: auto;
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .miranda-hero__brand {
+    margin: 0 0 clamp(1.5rem, 2vw, 2.35rem);
+    color: var(--miranda-accent-color);
+    font-family: var(--font-accent--family);
+    font-size: clamp(2.2rem, 3vw, 4rem);
+    font-style: italic;
+    font-weight: 700;
+    line-height: 0.9;
+    letter-spacing: 0;
+    text-transform: lowercase;
+  }
+
+  .miranda-hero__headline {
+    margin: 0;
+    color: var(--miranda-copy-color);
+    font-family: var(--miranda-editorial-serif);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .miranda-hero__headline-line {
+    display: block;
+  }
+
+  .miranda-hero__headline-line--primary {
+    font-size: clamp(3.8rem, 5vw, 6.5rem);
+  }
+
+  .miranda-hero__headline-line--accent {
+    margin-top: -0.08em;
+    color: var(--miranda-accent-color);
+    font-size: clamp(4rem, 5.3vw, 7rem);
+    font-style: italic;
+  }
+
+  .miranda-hero__subheadline {
+    max-width: 38rem;
+    margin: clamp(1.65rem, 2.15vw, 2.45rem) auto 0;
+    color: rgb(36 32 31 / 88%);
+    font-family: var(--font-body--family);
+    font-size: clamp(0.76rem, 0.82vw, 0.96rem);
+    font-weight: 500;
+    line-height: 1.9;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+
+  .miranda-hero__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, 470px);
+    min-height: clamp(64px, 4.6vw, 72px);
+    margin-top: clamp(2rem, 2.65vw, 3rem);
+    padding: 1rem 2rem;
+    color: #fff;
+    background: var(--miranda-accent-color);
+    border: 1px solid var(--miranda-accent-color);
+    border-radius: 2px;
+    font-family: var(--font-subheading--family);
+    font-size: clamp(0.78rem, 0.86vw, 0.94rem);
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.18em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .miranda-hero__button--disabled {
+    cursor: default;
+  }
+
+  @media (hover: hover) {
+    .miranda-hero__button:not(.miranda-hero__button--disabled):hover {
+      color: var(--miranda-accent-color);
+      background: #fff;
+      transform: translateY(-1px);
+    }
+  }
+
+  @media screen and (min-width: 1600px) {
+    .hero--miranda-campaign {
+      min-height: clamp(600px, 72svh, 860px);
+    }
+
+    .miranda-hero__copy {
+      width: min(40vw, 820px);
+    }
+  }
+
+  @media screen and (max-width: 1024px) {
+    .hero--miranda-campaign {
+      min-height: clamp(500px, 68svh, 700px);
+    }
+
+    .hero__content-wrapper.miranda-hero__content-wrapper {
+      padding-inline: clamp(2rem, 4vw, 3rem);
+    }
+
+    .miranda-hero__copy {
+      width: min(48vw, 560px);
+    }
+
+    .miranda-hero__headline-line--primary {
+      font-size: clamp(3.1rem, 5.1vw, 4.7rem);
+    }
+
+    .miranda-hero__headline-line--accent {
+      font-size: clamp(3.25rem, 5.4vw, 5rem);
+    }
+  }
+
+  @media screen and (max-width: 749px) {
+    .hero--miranda-campaign {
+      min-height: clamp(620px, 82svh, 760px);
+    }
+
+    .miranda-hero__media {
+      object-position: var(--miranda-image-position-mobile);
+    }
+
+    .hero__content-wrapper.miranda-hero__content-wrapper {
+      padding: 1.5rem;
+    }
+
+    .miranda-hero__content--mobile-bottom_center {
+      place-items: end center;
+    }
+
+    .miranda-hero__content--mobile-center {
+      place-items: center;
+    }
+
+    .miranda-hero__content--mobile-top_center {
+      place-items: start center;
+    }
+
+    .miranda-hero__copy {
+      width: min(100%, 23rem);
+      padding: 1.1rem 0.85rem;
+      background: linear-gradient(to bottom, rgb(255 255 255 / 0%), rgb(255 255 255 / 72%) 34%, rgb(255 255 255 / 86%));
+      text-align: center;
+    }
+
+    .miranda-hero__brand {
+      margin-bottom: 1rem;
+      font-size: clamp(1.8rem, 9vw, 2.65rem);
+    }
+
+    .miranda-hero__headline {
+      line-height: 0.96;
+    }
+
+    .miranda-hero__headline-line--primary {
+      font-size: clamp(2.4rem, 12vw, 3.45rem);
+    }
+
+    .miranda-hero__headline-line--accent {
+      max-width: 10.6ch;
+      margin-inline: auto;
+      font-size: clamp(2.55rem, 12.8vw, 3.75rem);
+    }
+
+    .miranda-hero__subheadline {
+      max-width: 21rem;
+      margin-top: 1.15rem;
+      font-size: clamp(0.62rem, 2.8vw, 0.74rem);
+      line-height: 1.7;
+      letter-spacing: 0.15em;
+    }
+
+    .miranda-hero__button {
+      width: min(100%, 21rem);
+      min-height: 54px;
+      margin-top: 1.25rem;
+      padding-inline: 1.2rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.14em;
+    }
+  }
 {% endstylesheet %}
 
 {% schema %}
@@ -946,6 +1317,167 @@
       "id": "video_2_mobile",
       "label": "t:settings.video",
       "visible_if": "{{ section.settings.custom_mobile_media and section.settings.media_type_2_mobile == 'video' }}"
+    },
+    {
+      "type": "header",
+      "content": "Miranda campanha editorial"
+    },
+    {
+      "type": "checkbox",
+      "id": "miranda_campaign_layout",
+      "label": "Usar layout Miranda",
+      "default": false
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_image_desktop",
+      "label": "Imagem desktop",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "image_picker",
+      "id": "miranda_image_mobile",
+      "label": "Imagem mobile",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "checkbox",
+      "id": "miranda_show_brand",
+      "label": "Exibir marca",
+      "default": true,
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_brand_text",
+      "label": "Texto da marca",
+      "default": "miranda",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_headline_line_1",
+      "label": "Headline linha 1",
+      "default": "Vista o que",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_headline_line_2",
+      "label": "Headline linha 2",
+      "default": "combina com você.",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "textarea",
+      "id": "miranda_subheadline",
+      "label": "Subheadline",
+      "default": "PEÇAS ESCOLHIDAS PARA DEIXAR\nSEUS LOOKS AINDA MAIS INCRÍVEIS.",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "text",
+      "id": "miranda_cta_label",
+      "label": "Texto do botão",
+      "default": "COMPRAR NOVIDADES →",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "url",
+      "id": "miranda_cta_link",
+      "label": "Link do botão",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "color",
+      "id": "miranda_accent_color",
+      "label": "Cor de destaque",
+      "default": "#FFADBE",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "select",
+      "id": "miranda_content_position_desktop",
+      "label": "Posição do conteúdo no desktop",
+      "options": [
+        {
+          "value": "right_center",
+          "label": "Direita centro"
+        },
+        {
+          "value": "right_bottom",
+          "label": "Direita inferior"
+        },
+        {
+          "value": "center",
+          "label": "Centro"
+        }
+      ],
+      "default": "right_center",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "select",
+      "id": "miranda_content_position_mobile",
+      "label": "Posição do conteúdo no mobile",
+      "options": [
+        {
+          "value": "bottom_center",
+          "label": "Inferior centro"
+        },
+        {
+          "value": "center",
+          "label": "Centro"
+        },
+        {
+          "value": "top_center",
+          "label": "Superior centro"
+        }
+      ],
+      "default": "bottom_center",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "select",
+      "id": "miranda_image_position_desktop",
+      "label": "Foco da imagem no desktop",
+      "options": [
+        {
+          "value": "left center",
+          "label": "Esquerda centro"
+        },
+        {
+          "value": "center center",
+          "label": "Centro"
+        },
+        {
+          "value": "left top",
+          "label": "Esquerda topo"
+        }
+      ],
+      "default": "left center",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
+    },
+    {
+      "type": "select",
+      "id": "miranda_image_position_mobile",
+      "label": "Foco da imagem no mobile",
+      "options": [
+        {
+          "value": "center top",
+          "label": "Centro topo"
+        },
+        {
+          "value": "left top",
+          "label": "Esquerda topo"
+        },
+        {
+          "value": "center center",
+          "label": "Centro"
+        }
+      ],
+      "default": "center top",
+      "visible_if": "{{ section.settings.miranda_campaign_layout }}"
     },
     {
       "type": "header",
