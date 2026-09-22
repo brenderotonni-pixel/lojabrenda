@@ -28,7 +28,15 @@
     assign is_rte = true
   endif
 
+  assign is_miranda_editorial_callout = false
+  if block.id == 'text_E7kWKg'
+    assign is_miranda_editorial_callout = true
+  endif
+
   capture text_block_classes
+    if is_miranda_editorial_callout
+      echo ' text-block--miranda-editorial-callout '
+    endif
     if text_width == '100%'
       echo 'text-block--align-' | append: block_settings.alignment
       if block_settings.max_width == 'none'
@@ -141,5 +149,45 @@
     max-inline-size: min(100%, var(--max-width, 100%));
     text-align: var(--text-align, var(--text-align-default));
     text-wrap: var(--text-wrap);
+  }
+
+  .text-block--miranda-editorial-callout {
+    --miranda-editorial-serif: Didot, "Bodoni 72", "Bodoni 72 Smallcaps", Baskerville, "Cormorant Garamond",
+      "Playfair Display", Georgia, serif;
+  }
+
+  .text-block--miranda-editorial-callout :is(h1, h2) {
+    color: #fff7f4 !important;
+    font-family: var(--miranda-editorial-serif) !important;
+    font-size: clamp(3.2rem, 4.8vw, 6rem) !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 0.96 !important;
+    letter-spacing: 0 !important;
+    text-wrap: balance;
+  }
+
+  .text-block--miranda-editorial-callout :is(em, i) {
+    color: #ffadbe;
+    font-style: italic;
+  }
+
+  .text-block--miranda-editorial-callout p {
+    color: rgb(255 247 244 / 0.9) !important;
+    font-family: var(--font-body--family) !important;
+    font-size: clamp(0.95rem, 1.1vw, 1.12rem) !important;
+    font-weight: 400 !important;
+    line-height: 1.55 !important;
+  }
+
+  @media screen and (max-width: 749px) {
+    .text-block--miranda-editorial-callout :is(h1, h2) {
+      font-size: clamp(2.45rem, 11.5vw, 3.7rem) !important;
+      line-height: 0.98 !important;
+    }
+
+    .text-block--miranda-editorial-callout p {
+      font-size: 0.94rem !important;
+    }
   }
 {% endstylesheet %}

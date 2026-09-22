@@ -73,15 +73,60 @@
     color 180ms ease;
 }
 
+#header-component .header__column--right,
 #header-component header-actions {
   align-items: center;
+}
+
+#header-component header-actions {
   gap: 0.15rem;
+}
+
+#header-component .search-action,
+#header-component .header-actions__action,
+#header-component .account-button,
+#header-component .header-actions__cart-icon,
+#header-component shopify-account,
+#header-component .svg-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#header-component .search-action,
+#header-component .header-actions__action,
+#header-component .account-button,
+#header-component shopify-account {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  line-height: 0;
 }
 
 #header-component .svg-wrapper,
 #header-component svg {
   width: 20px;
   height: 20px;
+}
+
+#header-component .account-button__icon,
+#header-component .header-actions__cart-icon svg,
+#header-component .search-action svg {
+  display: block;
+  flex: 0 0 auto;
+}
+
+@media screen and (min-width: 750px) {
+  #header-component[data-menu-style='menu'] .search-action--hidden-on-menu,
+  #header-component[data-menu-style='drawer'] .search-action--hidden-on-drawer {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 749px) {
+  #header-component .search-action--hidden-on-drawer {
+    display: none;
+  }
 }
 
 @media (hover: hover) {
@@ -118,7 +163,11 @@
 
   #header-component .header__columns,
   #header-component[data-menu-style='drawer'] .header__columns {
+    --header-mobile-bookend: 40px;
     min-height: 56px;
+    grid-template-columns: 40px 1fr 40px auto;
+    grid-template-areas: "leftA center rightA rightB";
+    column-gap: 0;
   }
 
   #header-component .header-logo,
@@ -135,6 +184,35 @@
   }
 
   #header-component header-actions {
+    display: inline-flex;
+    justify-self: end;
     gap: 0;
+  }
+
+  #header-component .search-action,
+  #header-component[data-menu-style='drawer'] .search-action {
+    grid-area: rightA;
+    justify-self: end;
+  }
+
+  #header-component .header-actions__action,
+  #header-component .search-action,
+  #header-component .header__icon--menu {
+    width: 40px;
+    min-width: 40px;
+    height: 44px;
+    min-height: 44px;
+    padding-inline: 0;
+  }
+
+  #header-component .header__icon--menu {
+    grid-area: leftA;
+    justify-self: start;
+  }
+
+  #header-component .svg-wrapper,
+  #header-component svg {
+    width: 19px;
+    height: 19px;
   }
 }

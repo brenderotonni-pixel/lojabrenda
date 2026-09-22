@@ -26,6 +26,12 @@
     if variant.available
       assign can_add_to_cart = true
       assign add_to_cart_text = 'products.product.add_to_cart' | t
+      if request.page_type == 'product'
+        assign product_add_to_bag_text = 'products.product.add_to_bag' | t
+        unless product_add_to_bag_text contains 'translation missing'
+          assign add_to_cart_text = product_add_to_bag_text
+        endunless
+      endif
     elsif inventory_managed and inventory_quantity <= 0 and inventory_policy == 'deny' or quantity_rule_soldout
       assign can_add_to_cart = false
       assign add_to_cart_text = 'products.product.sold_out' | t
@@ -242,6 +248,14 @@
           </span>
         {%- endif -%}
       {%- endform -%}
+      {% if request.page_type == 'product' %}
+        {% assign product_reassurance_text = 'products.product.purchase_reassurance' | t %}
+        {% unless product_reassurance_text contains 'translation missing' %}
+          <div class="miranda-product-trust" aria-label="{{ product_reassurance_text }}">
+            {{ product_reassurance_text }}
+          </div>
+        {% endunless %}
+      {% endif %}
     </product-form-component>
   {%- else -%}
     <div class="product-form-buttons">

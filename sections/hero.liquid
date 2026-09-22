@@ -1014,11 +1014,14 @@
     letter-spacing: 0.18em;
     text-decoration: none;
     text-transform: uppercase;
+    box-shadow: 0 14px 30px rgb(255 173 190 / 0.22);
     transition:
       color 180ms ease,
       background-color 180ms ease,
       border-color 180ms ease,
+      box-shadow 180ms ease,
       transform 180ms ease;
+    will-change: transform;
   }
 
   .miranda-hero__button--disabled {
@@ -1029,7 +1032,30 @@
     .miranda-hero__button:not(.miranda-hero__button--disabled):hover {
       color: var(--miranda-accent-color);
       background: #fff;
-      transform: translateY(-1px);
+      box-shadow: 0 18px 38px rgb(255 173 190 / 0.32);
+      transform: translateY(-2px);
+    }
+  }
+
+  .miranda-hero__button:not(.miranda-hero__button--disabled):active {
+    box-shadow: 0 8px 18px rgb(255 173 190 / 0.2);
+    transform: translateY(1px) scale(0.985);
+  }
+
+  .miranda-hero__button:focus-visible {
+    outline: 2px solid var(--miranda-accent-color);
+    outline-offset: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .miranda-hero__button {
+      transition: none;
+      will-change: auto;
+    }
+
+    .miranda-hero__button:not(.miranda-hero__button--disabled):hover,
+    .miranda-hero__button:not(.miranda-hero__button--disabled):active {
+      transform: none;
     }
   }
 

@@ -312,9 +312,11 @@
   "products": {
     "product": {
       "add_to_cart": "Adicionar ao carrinho",
+      "add_to_bag": "Adicionar à sacola",
       "added_to_cart": "Adicionado ao carrinho",
       "adding_to_cart": "Adicionando...",
       "add_to_cart_error": "Erro ao adicionar ao carrinho",
+      "purchase_reassurance": "Compra segura • Troca facilitada",
       "sold_out": "Esgotado",
       "unavailable": "Indisponível",
       "quantity_error_max": "Este item apresenta um máximo de {{ maximum }}",

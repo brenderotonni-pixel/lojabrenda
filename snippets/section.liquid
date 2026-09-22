@@ -21,7 +21,7 @@
 
 <div class="section-background color-custom-{{ section_id }}"></div>
 <div
-  class="section section--{{ section.settings.section_width }} color-custom-{{ section_id }}"
+  class="section section--{{ section.settings.section_width }} color-custom-{{ section_id }}{% if section_id == 'section_kNgAmQ' %} section--miranda-editorial-callout{% endif %}"
   data-testid="ui-test-section"
 
   {% if request.visual_preview_mode %}
@@ -107,5 +107,58 @@
 
   .custom-section-content {
     z-index: var(--layer-flat);
+  }
+
+  .section--miranda-editorial-callout {
+    --miranda-editorial-serif: Didot, "Bodoni 72", "Bodoni 72 Smallcaps", Baskerville, "Cormorant Garamond",
+      "Playfair Display", Georgia, serif;
+  }
+
+  .section--miranda-editorial-callout .section-content-wrapper {
+    width: min(100%, 920px);
+    margin-inline: auto;
+  }
+
+  .section--miranda-editorial-callout .text-block h1,
+  .section--miranda-editorial-callout .text-block h2 {
+    color: #fff7f4;
+    font-family: var(--miranda-editorial-serif);
+    font-size: clamp(3.2rem, 4.8vw, 6rem);
+    font-style: normal;
+    font-weight: 400;
+    line-height: 0.96;
+    letter-spacing: 0;
+    text-wrap: balance;
+  }
+
+  .section--miranda-editorial-callout .text-block em,
+  .section--miranda-editorial-callout .text-block i {
+    color: #ffadbe;
+    font-style: italic;
+  }
+
+  .section--miranda-editorial-callout .text-block p {
+    color: rgb(255 247 244 / 0.9);
+    font-family: var(--font-body--family);
+    font-size: clamp(0.95rem, 1.1vw, 1.12rem);
+    font-weight: 400;
+    line-height: 1.55;
+  }
+
+  @media screen and (max-width: 749px) {
+    .section--miranda-editorial-callout .section-content-wrapper {
+      width: min(100%, 24rem);
+      padding-inline: 1.25rem;
+    }
+
+    .section--miranda-editorial-callout .text-block h1,
+    .section--miranda-editorial-callout .text-block h2 {
+      font-size: clamp(2.45rem, 11.5vw, 3.7rem);
+      line-height: 0.98;
+    }
+
+    .section--miranda-editorial-callout .text-block p {
+      font-size: 0.94rem;
+    }
   }
 {% endstylesheet %}

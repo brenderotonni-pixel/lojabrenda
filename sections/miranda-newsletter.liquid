@@ -2,6 +2,11 @@
   assign show_section = section.settings.show_section
   assign accent_color = section.settings.accent_color | default: '#FFADBE'
   assign text_color = section.settings.text_color | default: '#ffffff'
+  assign email_placeholder = section.settings.placeholder | strip
+
+  if email_placeholder == blank or email_placeholder == 'Seu melhor e-mail'
+    assign email_placeholder = 'Seu e-mail'
+  endif
 %}
 
 {% if show_section %}
@@ -35,7 +40,7 @@
 
           <div class="miranda-newsletter__field">
             <label class="visually-hidden" for="MirandaNewsletterEmail-{{ section.id }}">
-              {{ section.settings.placeholder | default: 'Seu melhor e-mail' | escape }}
+              {{ email_placeholder | escape }}
             </label>
             <input
               id="MirandaNewsletterEmail-{{ section.id }}"
@@ -45,7 +50,7 @@
               autocorrect="off"
               autocapitalize="off"
               autocomplete="email"
-              placeholder="{{ section.settings.placeholder | default: 'Seu melhor e-mail' | escape }}"
+              placeholder="{{ email_placeholder | escape }}"
               required
               {% if form.errors %}
                 aria-invalid="true"
@@ -144,11 +149,12 @@
   .miranda-newsletter__input {
     padding-inline: 20px;
     background: rgb(255 255 255 / 0.16);
-    color: currentColor;
+    color: #24201f;
   }
 
   .miranda-newsletter__input::placeholder {
-    color: rgb(255 255 255 / 0.78);
+    color: rgb(36 32 31 / 0.55);
+    opacity: 1;
   }
 
   .miranda-newsletter__input:focus-visible,
@@ -169,12 +175,24 @@
     font-weight: 600;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    transition: transform 300ms var(--ease-out-cubic), background-color 300ms var(--ease-out-cubic);
+    box-shadow: 0 12px 24px rgb(36 32 31 / 0.08);
+    transition:
+      transform 220ms var(--ease-out-cubic),
+      background-color 220ms var(--ease-out-cubic),
+      box-shadow 220ms var(--ease-out-cubic);
+    will-change: transform;
   }
 
   .miranda-newsletter__button:hover {
-    transform: translateX(3px);
+    transform: translateY(-2px);
     background: rgb(255 255 255 / 0.92);
+    box-shadow: 0 16px 32px rgb(36 32 31 / 0.12);
+  }
+
+  .miranda-newsletter__button:active {
+    transform: translateY(1px) scale(0.985);
+    background: rgb(255 255 255 / 0.86);
+    box-shadow: 0 7px 16px rgb(36 32 31 / 0.1);
   }
 
   .miranda-newsletter__message {
@@ -185,9 +203,11 @@
   @media (prefers-reduced-motion: reduce) {
     .miranda-newsletter__button {
       transition: none;
+      will-change: auto;
     }
 
-    .miranda-newsletter__button:hover {
+    .miranda-newsletter__button:hover,
+    .miranda-newsletter__button:active {
       transform: none;
     }
   }
@@ -250,7 +270,7 @@
       "type": "text",
       "id": "placeholder",
       "label": "Placeholder do campo",
-      "default": "Seu melhor e-mail"
+      "default": "Seu e-mail"
     },
     {
       "type": "text",
